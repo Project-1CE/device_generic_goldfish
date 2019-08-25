@@ -1,5 +1,4 @@
-#
-# Copyright (C) 2015 The Android Open Source Project
+# Copyright (C) 2019 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,34 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 LOCAL_PATH := $(call my-dir)
-
 include $(CLEAR_VARS)
-LOCAL_VENDOR_MODULE := true
-LOCAL_MODULE := gatekeeper.ranchu
-LOCAL_MODULE_RELATIVE_PATH := hw
 
-LOCAL_CFLAGS := -Wall -Wextra -Werror -Wunused
-LOCAL_SRC_FILES := \
-	module.cpp \
-	SoftGateKeeperDevice.cpp
-
-
-LOCAL_SHARED_LIBRARIES := \
-	libbinder \
-	libgatekeeper \
-	liblog \
-	libhardware \
-	libbase \
-	libutils \
-	libcrypto \
-	libhidlbase \
-	libhidltransport \
-	libhwbinder \
-	android.hardware.gatekeeper@1.0 \
-
-LOCAL_STATIC_LIBRARIES := libscrypt_static
-LOCAL_C_INCLUDES := external/scrypt/lib/crypto
-include $(BUILD_SHARED_LIBRARY)
+# Build the application.
+LOCAL_MODULE_TAGS := optional
+LOCAL_PRIVILEGED_MODULE := true
+LOCAL_SRC_FILES := $(call all-java-files-under, src)
+LOCAL_PACKAGE_NAME := MultiDisplayProvider
+LOCAL_PRIVATE_PLATFORM_APIS := true
+LOCAL_CERTIFICATE := platform
+LOCAL_RESOURCE_DIR = $(LOCAL_PATH)/res
+LOCAL_JNI_SHARED_LIBRARIES := libemulator_multidisplay_jni
+include $(BUILD_PACKAGE)
+include $(call all-makefiles-under,$(LOCAL_PATH))
