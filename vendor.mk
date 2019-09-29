@@ -18,11 +18,27 @@
 #
 
 ifeq ($(QEMU_DISABLE_AVB),true)
-PRODUCT_COPY_FILES += \
-    device/generic/goldfish/data/etc/dummy.vbmeta.img:$(PRODUCT_OUT)/vbmeta.img \
-    device/generic/goldfish/fstab.ranchu.initrd.noavb:$(TARGET_COPY_OUT_RAMDISK)/fstab.ranchu \
-    device/generic/goldfish/fstab.ranchu.noavb:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.ranchu
+  ifeq ($(QEMU_USE_SYSTEM_EXT_PARTITIONS),true)
+    PRODUCT_COPY_FILES += \
+      device/generic/goldfish/data/etc/dummy.vbmeta.img:$(PRODUCT_OUT)/vbmeta.img \
+      device/generic/goldfish/fstab.ranchu.initrd.noavb.ex:$(TARGET_COPY_OUT_RAMDISK)/fstab.ranchu \
+      device/generic/goldfish/fstab.ranchu.noavb.ex:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.ranchu
+  else
+    PRODUCT_COPY_FILES += \
+      device/generic/goldfish/data/etc/dummy.vbmeta.img:$(PRODUCT_OUT)/vbmeta.img \
+      device/generic/goldfish/fstab.ranchu.initrd.noavb:$(TARGET_COPY_OUT_RAMDISK)/fstab.ranchu \
+      device/generic/goldfish/fstab.ranchu.noavb:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.ranchu
+  endif
 endif
+
+ifeq ($(QEMU_USE_SYSTEM_EXT_PARTITIONS),true)
+PRODUCT_COPY_FILES += \
+    device/generic/goldfish/fstab.ranchu.initrd.ex:$(TARGET_COPY_OUT_RAMDISK)/fstab.ranchu \
+    device/generic/goldfish/fstab.ranchu.ex:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.ranchu
+endif
+
+
+DISABLE_RILD_OEM_HOOK := true
 
 # Device modules
 PRODUCT_PACKAGES += \
@@ -34,6 +50,7 @@ PRODUCT_PACKAGES += \
     lib_renderControl_enc \
     libEGL_emulation \
     libGLESv2_enc \
+    libandroidemu \
     libvulkan_enc \
     libOpenglCodecCommon \
     libOpenglSystemCommon \
@@ -69,6 +86,7 @@ PRODUCT_PACKAGES += \
     android.hardware.wifi@1.0-service \
     android.hardware.biometrics.fingerprint@2.1-service \
     sh_vendor \
+    ip_vendor \
     iw_vendor \
     audio.r_submix.default \
     local_time.default \
@@ -131,12 +149,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
 	createns \
 	dhcpclient \
-	dhcpserver \
 	execns \
 	hostapd \
 	hostapd_nohidl \
-	ipv6proxy \
 	netmgr \
+	wifi_forwarder \
 	wpa_supplicant \
 
 PRODUCT_PACKAGES += android.hardware.thermal@2.0-service.mock
