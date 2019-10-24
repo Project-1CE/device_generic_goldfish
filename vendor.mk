@@ -40,31 +40,22 @@ endif
 
 DISABLE_RILD_OEM_HOOK := true
 
+DEVICE_MANIFEST_FILE := device/generic/goldfish/manifest.xml
+
 # Device modules
 PRODUCT_PACKAGES += \
     vulkan.ranchu \
     gralloc.goldfish \
     gralloc.goldfish.default \
     gralloc.ranchu \
-    libGLESv1_CM_emulation \
-    lib_renderControl_enc \
-    libEGL_emulation \
-    libGLESv2_enc \
     libandroidemu \
-    libvulkan_enc \
     libOpenglCodecCommon \
     libOpenglSystemCommon \
-    libGLESv2_emulation \
-    libGLESv1_enc \
     libEGL_swiftshader \
     libGLESv1_CM_swiftshader \
     libGLESv2_swiftshader \
     libgoldfish-ril \
     qemu-props \
-    camera.goldfish \
-    camera.goldfish.jpeg \
-    camera.ranchu \
-    camera.ranchu.jpeg \
     gps.goldfish \
     gps.ranchu \
     fingerprint.goldfish \
@@ -73,9 +64,8 @@ PRODUCT_PACKAGES += \
     power.goldfish \
     power.ranchu \
     fingerprint.ranchu \
-    sensors.ranchu \
-    android.hardware.graphics.composer@2.1-impl \
-    android.hardware.graphics.composer@2.1-service \
+    android.hardware.graphics.composer@2.3-impl \
+    android.hardware.graphics.composer@2.3-service \
     android.hardware.graphics.allocator@2.0-service \
     android.hardware.graphics.allocator@2.0-impl \
     android.hardware.graphics.mapper@2.0-impl \
@@ -90,7 +80,19 @@ PRODUCT_PACKAGES += \
     iw_vendor \
     audio.r_submix.default \
     local_time.default \
-    SdkSetup
+    SdkSetup \
+    MultiDisplayProvider
+
+ifneq ($(BUILD_EMULATOR_OPENGL),false)
+PRODUCT_PACKAGES += \
+    libGLESv1_CM_emulation \
+    lib_renderControl_enc \
+    libEGL_emulation \
+    libGLESv2_enc \
+    libvulkan_enc \
+    libGLESv2_emulation \
+    libGLESv1_enc
+endif
 
 PRODUCT_PACKAGES += \
     android.hardware.audio@4.0-impl:32 \
@@ -103,8 +105,8 @@ PRODUCT_PACKAGES += \
     android.hardware.health@2.0-service.goldfish
 
 PRODUCT_PACKAGES += \
-    android.hardware.keymaster@3.0-impl \
-    android.hardware.keymaster@3.0-service
+    android.hardware.keymaster@4.0-impl \
+    android.hardware.keymaster@4.0-service
 
 PRODUCT_PACKAGES += \
     DisplayCutoutEmulationEmu01Overlay
@@ -113,12 +115,16 @@ ifneq ($(EMULATOR_VENDOR_NO_GNSS),true)
 PRODUCT_PACKAGES += \
     android.hardware.gnss@1.0-service \
     android.hardware.gnss@1.0-impl
+DEVICE_MANIFEST_FILE += device/generic/goldfish/manifest.gnss.xml
 endif
 
-
+ifneq ($(EMULATOR_VENDOR_NO_SENSORS),true)
 PRODUCT_PACKAGES += \
     android.hardware.sensors@1.0-impl \
-    android.hardware.sensors@1.0-service
+    android.hardware.sensors@1.0-service \
+    sensors.ranchu
+DEVICE_MANIFEST_FILE += device/generic/goldfish/manifest.sensors.xml
+endif
 
 PRODUCT_PACKAGES += \
     android.hardware.drm@1.0-service \
@@ -137,10 +143,17 @@ PRODUCT_PROPERTY_OVERRIDES += persist.sys.zram_enabled=1 \
 PRODUCT_PROPERTY_OVERRIDES += ro.crypto.volume.filenames_mode=aes-256-cts
 
 
+ifneq ($(EMULATOR_VENDOR_NO_CAMERA),true)
 PRODUCT_PACKAGES += \
     camera.device@1.0-impl \
     android.hardware.camera.provider@2.4-service \
     android.hardware.camera.provider@2.4-impl \
+    camera.goldfish \
+    camera.goldfish.jpeg \
+    camera.ranchu \
+    camera.ranchu.jpeg
+DEVICE_MANIFEST_FILE += device/generic/goldfish/manifest.camera.xml
+endif
 
 PRODUCT_PACKAGES += \
     android.hardware.gatekeeper@1.0-service.software
@@ -163,10 +176,8 @@ PRODUCT_COPY_FILES += \
     device/generic/goldfish/data/etc/permissions/privapp-permissions-goldfish.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/permissions/privapp-permissions-goldfish.xml
 
 # Goldfish does not support ION needed for Codec 2.0
-PRODUCT_PROPERTY_OVERRIDES += \
-    debug.stagefright.ccodec=0
-
-DEVICE_MANIFEST_FILE := device/generic/goldfish/manifest.xml
+#PRODUCT_PROPERTY_OVERRIDES += \
+#    debug.stagefright.ccodec=0
 
 PRODUCT_COPY_FILES += \
     device/generic/goldfish/fstab.ranchu.initrd:$(TARGET_COPY_OUT_RAMDISK)/fstab.ranchu \
@@ -209,8 +220,12 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
     frameworks/native/data/etc/android.hardware.camera.ar.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.ar.xml \
     frameworks/native/data/etc/android.hardware.camera.autofocus.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.autofocus.xml \
+    frameworks/native/data/etc/android.hardware.camera.front.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.front.xml \
     frameworks/native/data/etc/android.hardware.camera.full.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.full.xml \
     frameworks/native/data/etc/android.hardware.fingerprint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.fingerprint.xml \
+    frameworks/native/data/etc/android.hardware.vulkan.level-1.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.level.xml \
+    frameworks/native/data/etc/android.hardware.vulkan.compute-0.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.compute.xml \
+    frameworks/native/data/etc/android.hardware.vulkan.version-1_1.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.vulkan.version.xml \
     frameworks/native/data/etc/android.software.autofill.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.autofill.xml \
     frameworks/native/data/etc/android.software.verified_boot.xml:system/etc/permissions/android.software.verified_boot.xml \
     frameworks/av/media/libeffects/data/audio_effects.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_effects.xml \
