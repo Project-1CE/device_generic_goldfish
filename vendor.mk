@@ -42,7 +42,7 @@ DISABLE_RILD_OEM_HOOK := true
 
 DEVICE_MANIFEST_FILE := device/generic/goldfish/manifest.xml
 PRODUCT_SOONG_NAMESPACES += hardware/google/camera
-PRODUCT_SOONG_NAMESPACES += vendor/google/camera
+PRODUCT_SOONG_NAMESPACES += hardware/google/camera/devices/EmulatedCamera
 
 # Device modules
 PRODUCT_PACKAGES += \
@@ -97,8 +97,8 @@ PRODUCT_PACKAGES += \
 endif
 
 PRODUCT_PACKAGES += \
-    android.hardware.audio@4.0-impl:32 \
-    android.hardware.audio.effect@4.0-impl:32 \
+    android.hardware.audio@5.0-impl:32 \
+    android.hardware.audio.effect@5.0-impl:32 \
     android.hardware.broadcastradio@1.1-service \
     android.hardware.broadcastradio@1.0-impl \
     android.hardware.soundtrigger@2.0-impl
@@ -174,7 +174,29 @@ PRODUCT_PACKAGES += \
 	wifi_forwarder \
 	wpa_supplicant \
 
-PRODUCT_PACKAGES += android.hardware.thermal@2.0-service.mock
+# Thermal
+PRODUCT_PACKAGES += \
+	android.hardware.thermal@2.0-service.mock
+
+# Atrace
+PRODUCT_PACKAGES += \
+	android.hardware.atrace@1.0-service
+
+# Vibrator
+PRODUCT_PACKAGES += \
+	android.hardware.vibrator-service.example
+
+# Authsecret
+PRODUCT_PACKAGES += \
+    android.hardware.authsecret@1.0-service
+
+# Input Classifier HAL
+PRODUCT_PACKAGES += \
+    android.hardware.input.classifier@1.0-service.default
+
+# power stats
+PRODUCT_PACKAGES += \
+    android.hardware.power.stats@1.0-service.mock
 
 # Goldfish does not support ION needed for Codec 2.0
 # still disable it until b/143473631 is fixed
