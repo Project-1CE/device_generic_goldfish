@@ -102,8 +102,6 @@ endif
 PRODUCT_PACKAGES += \
     android.hardware.audio@5.0-impl:32 \
     android.hardware.audio.effect@5.0-impl:32 \
-    android.hardware.broadcastradio@1.1-service \
-    android.hardware.broadcastradio@1.0-impl \
     android.hardware.soundtrigger@2.0-impl
 
 PRODUCT_PACKAGES += \
@@ -134,8 +132,8 @@ endif
 PRODUCT_PACKAGES += \
     android.hardware.drm@1.0-service \
     android.hardware.drm@1.0-impl \
-    android.hardware.drm@1.2-service.clearkey \
-    android.hardware.drm@1.2-service.widevine
+    android.hardware.drm@1.3-service.clearkey \
+    android.hardware.drm@1.3-service.widevine
 
 PRODUCT_PACKAGES += \
     android.hardware.power@1.1-service.ranchu \
@@ -200,6 +198,10 @@ PRODUCT_PACKAGES += \
 # power stats
 PRODUCT_PACKAGES += \
     android.hardware.power.stats@1.0-service.mock
+
+# Reboot escrow
+PRODUCT_PACKAGES += \
+    android.hardware.rebootescrow-service.default
 
 # Goldfish does not support ION needed for Codec 2.0
 # still disable it until b/143473631 is fixed

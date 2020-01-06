@@ -169,7 +169,7 @@ public:
      * Gets number of emulated cameras.
      */
     int getEmulatedCameraNum() const {
-        return mEmulatedCameraNum;
+        return mEmulatedCameras.size();
     }
 
     /*
@@ -268,12 +268,6 @@ private:
 
     // Array of cameras available for the emulation.
     std::vector<std::unique_ptr<EmulatedBaseCamera>> mEmulatedCameras;
-
-    // Number of emulated cameras (including the fake ones).
-    int mEmulatedCameraNum;
-
-    // Number of emulated fake cameras.
-    int mFakeCameraNum;
 
     // Flags whether or not constructor has succeeded.
     bool mConstructedOK;

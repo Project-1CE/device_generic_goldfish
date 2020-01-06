@@ -44,7 +44,7 @@ android::EmulatedCameraFactory gEmulatedCameraFactory;
 namespace android {
 
 EmulatedCameraFactory::EmulatedCameraFactory() :
-        mFakeCameraNum(0),
+        mQemuClient(),
         mConstructedOK(false),
         mCallbacks(nullptr) {
 
@@ -52,30 +52,28 @@ EmulatedCameraFactory::EmulatedCameraFactory() :
      * Figure out how many cameras need to be created, so we can allocate the
      * array of emulated cameras before populating it.
      */
-    int emulatedCamerasSize = 0;
 
     // QEMU Cameras
     std::vector<QemuCameraInfo> qemuCameras;
     if (mQemuClient.connectClient(nullptr) == NO_ERROR) {
         findQemuCameras(&qemuCameras);
-        emulatedCamerasSize += qemuCameras.size();
     }
 
+    int fakeCameraNum = 0;
     waitForQemuSfFakeCameraPropertyAvailable();
     // Fake Cameras
     if (isFakeCameraEmulationOn(/* backCamera */ true)) {
-        mFakeCameraNum++;
+        fakeCameraNum++;
     }
     if (isFakeCameraEmulationOn(/* backCamera */ false)) {
-        mFakeCameraNum++;
+        fakeCameraNum++;
     }
-    emulatedCamerasSize += mFakeCameraNum;
 
     /*
      * We have the number of cameras we need to create, now allocate space for
      * them.
      */
-    mEmulatedCameras.resize(emulatedCamerasSize);
+    mEmulatedCameras.reserve(qemuCameras.size() + fakeCameraNum);
 
     createQemuCameras(qemuCameras);
 
@@ -87,17 +85,16 @@ EmulatedCameraFactory::EmulatedCameraFactory() :
         createFakeCamera(/* backCamera */ false);
     }
 
-    ALOGE("%d cameras are being emulated. %d of them are fake cameras.",
-            mEmulatedCameraNum, mFakeCameraNum);
+    ALOGE("%zu cameras are being emulated. %d of them are fake cameras.",
+            mEmulatedCameras.size(), fakeCameraNum);
 
     // Create hotplug thread.
     {
-        Vector<int> cameraIdVector;
-        for (int i = 0; i < mEmulatedCameraNum; ++i) {
-            cameraIdVector.push_back(i);
+        std::vector<int> cameraIdVector;
+        for (const auto &camera: mEmulatedCameras) {
+            cameraIdVector.push_back(camera->getCameraId());
         }
-        mHotplugThread = new EmulatedCameraHotplugThread(&cameraIdVector[0],
-                                                         mEmulatedCameraNum);
+        mHotplugThread = new EmulatedCameraHotplugThread(std::move(cameraIdVector));
         mHotplugThread->run("EmulatedCameraHotplugThread");
     }
 
