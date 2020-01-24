@@ -16,6 +16,7 @@
 #
 # This file is to configure vendor/data partitions of emulator-related products
 #
+$(call inherit-product-if-exists, frameworks/native/build/phone-xhdpi-2048-dalvik-heap.mk)
 
 ifeq ($(QEMU_DISABLE_AVB),true)
   ifeq ($(QEMU_USE_SYSTEM_EXT_PARTITIONS),true)
@@ -31,6 +32,7 @@ ifeq ($(QEMU_DISABLE_AVB),true)
   endif
 endif
 
+PRODUCT_SYSTEM_EXT_PROPERTIES += ro.lockscreen.disable.default=1
 ifeq ($(QEMU_USE_SYSTEM_EXT_PARTITIONS),true)
 PRODUCT_COPY_FILES += \
     device/generic/goldfish/fstab.ranchu.initrd.ex:$(TARGET_COPY_OUT_RAMDISK)/fstab.ranchu \
@@ -64,14 +66,14 @@ PRODUCT_PACKAGES += \
     audio.primary.goldfish \
     audio.primary.goldfish_legacy \
     power.goldfish \
+    stagefright \
     power.ranchu \
     fingerprint.ranchu \
-    android.hardware.graphics.composer@2.3-impl \
-    android.hardware.graphics.composer@2.3-service \
+    android.hardware.graphics.composer@2.1-impl \
+    android.hardware.graphics.composer@2.1-service \
     android.hardware.graphics.allocator@2.0-service \
     android.hardware.graphics.allocator@2.0-impl \
     android.hardware.graphics.mapper@2.0-impl \
-    hwcomposer.goldfish \
     hwcomposer.ranchu \
     toybox_vendor \
     android.hardware.audio@2.0-service \
