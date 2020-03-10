@@ -52,9 +52,6 @@ PRODUCT_PACKAGES += \
     libandroidemu \
     libOpenglCodecCommon \
     libOpenglSystemCommon \
-    libEGL_swiftshader \
-    libGLESv1_CM_swiftshader \
-    libGLESv2_swiftshader \
     libgoldfish-ril \
     qemu-props \
     gps.goldfish \
@@ -201,6 +198,10 @@ PRODUCT_PACKAGES += \
 # Reboot escrow
 PRODUCT_PACKAGES += \
     android.hardware.rebootescrow-service.default
+
+# Extension implementation for Jetpack WindowManager
+PRODUCT_PACKAGES += \
+    androidx.window.extensions
 
 # Goldfish does not support ION needed for Codec 2.0
 # still disable it until b/143473631 is fixed
