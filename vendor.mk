@@ -98,11 +98,12 @@ PRODUCT_PACKAGES += \
     android.hardware.soundtrigger@2.0-impl
 
 PRODUCT_PACKAGES += \
-    android.hardware.health@2.0-service
+    android.hardware.health@2.1-service \
+    android.hardware.health@2.1-impl \
+    android.hardware.health.storage@1.0-service \
 
 PRODUCT_PACKAGES += \
-    android.hardware.keymaster@4.0-impl \
-    android.hardware.keymaster@4.0-service
+    android.hardware.keymaster@4.1-service
 
 PRODUCT_PACKAGES += \
     DisplayCutoutEmulationEmu01Overlay \
@@ -190,9 +191,17 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     android.hardware.authsecret@1.0-service
 
+# Identity
+PRODUCT_PACKAGES += \
+    android.hardware.identity-service.example
+
 # Input Classifier HAL
 PRODUCT_PACKAGES += \
     android.hardware.input.classifier@1.0-service.default
+
+# lights
+PRODUCT_PACKAGES += \
+    android.hardware.lights-service.example
 
 # power stats
 PRODUCT_PACKAGES += \
@@ -212,6 +221,10 @@ PRODUCT_PACKAGES += \
 # -qemu -append qemu.media.ccodec=<value> can override it; default 0
 #PRODUCT_PROPERTY_OVERRIDES += \
 #    debug.stagefright.ccodec=0
+
+# Enable Incremental on the device via kernel driver
+PRODUCT_PRODUCT_PROPERTIES += ro.incremental.enable=yes
+
 
 PRODUCT_COPY_FILES += \
     device/generic/goldfish/fstab.ranchu.initrd:$(TARGET_COPY_OUT_RAMDISK)/fstab.ranchu \
