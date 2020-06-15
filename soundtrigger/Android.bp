@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2011 The Android Open Source Project
+// Copyright (C) 2020 The Android Open Source Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,38 +14,24 @@
 // limitations under the License.
 
 cc_library_shared {
-    name: "android.hardware.audio@6.0-impl.ranchu",
+    name: "android.hardware.soundtrigger@2.2-impl.ranchu",
     vendor: true,
-    vintf_fragments: ["android.hardware.audio@6.0-impl.ranchu.xml"],
+    vintf_fragments: ["android.hardware.soundtrigger@2.2-impl.ranchu.xml"],
     relative_install_path: "hw",
     defaults: ["hidl_defaults"],
     srcs: [
-        "entry.cpp",
-        "device_factory.cpp",
-        "primary_device.cpp",
-        "stream_common.cpp",
-        "stream_in.cpp",
-        "stream_out.cpp",
-        "io_thread.cpp",
-        "talsa.cpp",
-        "util.cpp",
+        "main.cpp",
     ],
     shared_libs: [
-        "android.hardware.audio@6.0",
-        "android.hardware.audio.common@6.0",
-        "android.hardware.audio.common@6.0-util",
+        "android.hardware.soundtrigger@2.0",
+        "android.hardware.soundtrigger@2.1",
+        "android.hardware.soundtrigger@2.2",
         "libbase",
         "libcutils",
         "libhidlbase",
-        "liblog",
-        "libtinyalsa",
         "libutils",
-        "libfmq",
-    ],
-    header_libs: [
-        "libaudio_system_headers",
     ],
     cflags: [
-        "-DLOG_TAG=\"android.hardware.audio@6.0-impl.ranchu\"",
+        "-DLOG_TAG=\"android.hardware.soundtrigger@2.2-impl.ranchu\"",
     ],
 }
