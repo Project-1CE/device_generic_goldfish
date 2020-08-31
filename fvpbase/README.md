@@ -19,15 +19,15 @@ mkdir android-kernel-mainline
 cd android-kernel-mainline
 repo init -u https://android.googlesource.com/kernel/manifest -b common-android-mainline
 repo sync
+repo start android-mainline common && repo download -c common 1145352
 BUILD_CONFIG=common/build.config.fvp build/build.sh
 ```
 
 The resulting kernel image and DTB must then be copied into the product output directory:
 
 ```
-mkdir -p $ANDROID_PRODUCT_OUT/boot
-cp out/android-mainline/dist/Image out/android-mainline/dist/initramfs.img $ANDROID_PRODUCT_OUT/boot/
-cp out/android-mainline/dist/fvp-base-revc.dtb $ANDROID_PRODUCT_OUT/boot/devtree.dtb
+cp out/android-mainline/dist/Image $ANDROID_PRODUCT_OUT/kernel
+cp out/android-mainline/dist/fvp-base-revc.dtb out/android-mainline/dist/initramfs.img $ANDROID_PRODUCT_OUT/
 ```
 
 ### Building the firmware (ARM Trusted Firmware and U-Boot)
@@ -39,6 +39,12 @@ mkdir platform
 cd platform
 repo init -u https://git.linaro.org/landing-teams/working/arm/manifest.git -m pinned-uboot.xml -b 20.01
 repo sync
+
+# The included copy of U-Boot is incompatible with this version of AOSP, switch to a recent upstream checkout.
+cd u-boot
+git fetch https://gitlab.denx.de/u-boot/u-boot.git/ master
+git checkout 18b9c98024ec89e00a57707f07ff6ada06089d26
+cd ..
 
 mkdir -p tools/gcc
 cd tools/gcc
@@ -52,7 +58,7 @@ build-scripts/build-test-uboot.sh -p fvp all
 These components must then be copied into the product output directory:
 
 ```
-cp output/fvp/fvp-uboot/uboot/{bl1,fip}.bin $ANDROID_PRODUCT_OUT/boot/
+cp output/fvp/fvp-uboot/uboot/{bl1,fip}.bin $ANDROID_PRODUCT_OUT/
 ```
 
 ### Obtaining the model
