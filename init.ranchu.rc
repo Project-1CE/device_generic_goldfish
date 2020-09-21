@@ -59,7 +59,7 @@ on zygote-start
 
 on boot
     setprop ro.hardware.egl emulation
-    setprop debug.sf.vsync_reactor 0
+    setprop debug.sf.vsync_reactor_ignore_present_fences true
     setprop debug.hwui.renderer opengl
     setprop debug.hwui.renderer ${ro.kernel.qemu.uirenderer}
     setprop ro.opengles.version ${ro.kernel.qemu.opengles.version}
@@ -80,7 +80,7 @@ on boot
 
     start goldfish-logcat
 
-    # Create a dummy USB gadget to allow sysfs testing
+    # Create an unused USB gadget to allow sysfs testing
     mkdir /config/usb_gadget/g1 0770 root root
 
 service ranchu-setup /vendor/bin/init.ranchu-core.sh
