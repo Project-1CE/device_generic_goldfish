@@ -1,5 +1,13 @@
+on early-fs
+    start vold
+
 on fs
+    exec_start wait_for_keymaster
     mount_all /vendor/etc/fstab.ranchu
+
+on late-fs
+    # Mount RW partitions which need run fsck
+    mount_all /vendor/etc/fstab.ranchu --late
 
 on early-init
     mount proc proc /proc remount hidepid=2,gid=3009
@@ -49,7 +57,7 @@ on post-fs-data
     mkdir /data/vendor/var 0755 root root
     mkdir /data/vendor/var/run 0755 root root
     mkdir /data/vendor/var/run/netns 0755 root root
-    start ranchu-net
+    start create_router_ns
 
 on zygote-start
     # Create the directories used by the Wireless subsystem
@@ -65,8 +73,7 @@ on boot
     setprop ro.opengles.version ${ro.kernel.qemu.opengles.version}
     setprop ro.zygote.disable_gl_preload 1
 
-    # 0: omx; 4: c2 default now
-    setprop debug.stagefright.ccodec 4
+    setprop debug.stagefright.ccodec 0
     setprop debug.stagefright.ccodec ${ro.kernel.qemu.media.ccodec}
 
     setprop dalvik.vm.heapsize 192m
@@ -99,6 +106,9 @@ on property:dev.bootcomplete=1
     setprop vendor.qemu.dev.bootcomplete 1
     start ranchu-setup
 
+on property:qemu.networknamespace=ready
+    start ranchu-net
+
 service ranchu-net /vendor/bin/init.ranchu-net.sh
     class late_start
     user root
@@ -115,6 +125,12 @@ service netmgr /vendor/bin/execns router /vendor/bin/netmgr --if-prefix wlan1 --
     user root
     group root wifi
     disabled
+
+service create_router_ns /vendor/bin/createns router
+    user root
+    group root
+    disabled
+    oneshot
 
 service wifi_forwarder /vendor/bin/wifi_forwarder
     user root
