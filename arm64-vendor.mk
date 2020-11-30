@@ -1,14 +1,17 @@
-PRODUCT_KERNEL_VERSION := 5.4
+TARGET_KERNEL_USE ?= 5.4
 BOARD_VENDOR_RAMDISK_KERNEL_MODULES += \
-    $(wildcard prebuilts/qemu-kernel/arm64/$(PRODUCT_KERNEL_VERSION)/ko/*.ko)
+    $(wildcard prebuilts/qemu-kernel/arm64/$(TARGET_KERNEL_USE)/ko/*.ko)
 
 PRODUCT_PROPERTY_OVERRIDES += \
        vendor.rild.libpath=/vendor/lib64/libgoldfish-ril.so
 
+PRODUCT_PACKAGES += \
+    emulatorip
+
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.crypto.dm_default_key.options_format.version=2
 
-PRODUCT_SHIPPING_API_LEVEL := 30
+PRODUCT_SHIPPING_API_LEVEL := 31
 PRODUCT_OTA_ENFORCE_VINTF_KERNEL_REQUIREMENTS := false
 TARGET_USES_MKE2FS := true
 
@@ -33,7 +36,7 @@ endif
 
 
 PRODUCT_COPY_FILES += \
-    prebuilts/qemu-kernel/arm64/$(PRODUCT_KERNEL_VERSION)/kernel-qemu2:kernel-ranchu \
+    prebuilts/qemu-kernel/arm64/$(TARGET_KERNEL_USE)/kernel-qemu2:kernel-ranchu \
     device/generic/goldfish/data/etc/advancedFeatures.ini.arm:advancedFeatures.ini \
 
 EMULATOR_VENDOR_NO_GNSS := true
