@@ -51,15 +51,20 @@ $(eval $(call copy-one-file,$(INSTALLED_QEMU_VENDORIMAGE),$(FINAL_INSTALLED_QEMU
 INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/encryptionkey.img
 INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/userdata.img
 
+INTERNAL_EMULATOR_FEATURE_DIR := .
+ifneq ($(filter sdk_phone64_% sdk_gphone64_%, $(TARGET_PRODUCT)),)
+INTERNAL_EMULATOR_FEATURE_DIR := 64bit
+endif
+
 ifeq ($(TARGET_BUILD_VARIANT),user)
-INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/google/user/advancedFeatures.ini
+INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/google/$(INTERNAL_EMULATOR_FEATURE_DIR)/user/advancedFeatures.ini
 ifeq ($(TARGET_ARCH),arm64)
-INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/google/user/arm64/advancedFeatures.ini
+INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/google/$(INTERNAL_EMULATOR_FEATURE_DIR)/user/arm64/advancedFeatures.ini
 endif
 else
-INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/google/userdebug/advancedFeatures.ini
+INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/google/$(INTERNAL_EMULATOR_FEATURE_DIR)/userdebug/advancedFeatures.ini
 ifeq ($(TARGET_ARCH),arm64)
-INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/google/userdebug/arm64/advancedFeatures.ini
+INTERNAL_EMULATOR_PACKAGE_FILES += device/generic/goldfish/data/etc/google/$(INTERNAL_EMULATOR_FEATURE_DIR)/userdebug/arm64/advancedFeatures.ini
 endif
 endif
 
@@ -69,21 +74,36 @@ name := sdk-repo-linux-system-images-$(FILE_NAME_TAG)
 
 
 INTERNAL_EMULATOR_PACKAGE_TARGET := $(PRODUCT_OUT)/$(name).zip
+
 ifeq ($(TARGET_ARCH), x86)
 EMULATOR_KERNEL_ARCH := x86_64
 EMULATOR_KERNEL_DIST_NAME := kernel-ranchu-64
+EMULATOR_KERNEL_VERSION := 5.10
+EMULATOR_KERNEL_FILE := kernel/prebuilts/$(EMULATOR_KERNEL_VERSION)/$(EMULATOR_KERNEL_ARCH)/kernel-$(EMULATOR_KERNEL_VERSION)
 else
+ifeq ($(TARGET_ARCH), x86_64)
 EMULATOR_KERNEL_ARCH := $(TARGET_ARCH)
 EMULATOR_KERNEL_DIST_NAME := kernel-ranchu
-endif
-
-ifneq ($(filter $(TARGET_ARCH), x86 x86_64 arm64),)
 EMULATOR_KERNEL_VERSION := 5.10
+EMULATOR_KERNEL_FILE := kernel/prebuilts/$(EMULATOR_KERNEL_VERSION)/$(EMULATOR_KERNEL_ARCH)/kernel-$(EMULATOR_KERNEL_VERSION)
 else
+ifeq ($(TARGET_ARCH), arm64)
+EMULATOR_KERNEL_ARCH := $(TARGET_ARCH)
+EMULATOR_KERNEL_DIST_NAME := kernel-ranchu
+EMULATOR_KERNEL_VERSION := 5.10
+EMULATOR_KERNEL_FILE := kernel/prebuilts/$(EMULATOR_KERNEL_VERSION)/$(EMULATOR_KERNEL_ARCH)/kernel-$(EMULATOR_KERNEL_VERSION)-lz4
+else
+ifeq ($(TARGET_ARCH), arm)
+EMULATOR_KERNEL_ARCH := $(TARGET_ARCH)
+EMULATOR_KERNEL_DIST_NAME := kernel-ranchu
 EMULATOR_KERNEL_VERSION := 3.18
-endif
-
 EMULATOR_KERNEL_FILE := prebuilts/qemu-kernel/$(EMULATOR_KERNEL_ARCH)/$(EMULATOR_KERNEL_VERSION)/kernel-qemu2
+else
+$(error unsupported arch: $(TARGET_ARCH))
+endif # arm
+endif # arm64
+endif # x86_64
+endif # x86
 
 $(INTERNAL_EMULATOR_PACKAGE_TARGET): $(INTERNAL_EMULATOR_PACKAGE_FILES) $(FINAL_INSTALLED_QEMU_SYSTEMIMAGE) $(FINAL_INSTALLED_QEMU_RAMDISKIMAGE) $(FINAL_INSTALLED_QEMU_VENDORIMAGE) $(EMULATOR_KERNEL_FILE)
 	@echo "Package: $@"
