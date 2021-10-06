@@ -24,6 +24,8 @@ on early-init
     # GTS tests are migrated to ro.boot.qemu.
     setprop ro.kernel.qemu 1
 
+    verity_update_state
+
 on init
     # set RLIMIT_MEMLOCK to 8MB for BPF network statistics
     setrlimit memlock 8388608 8388608
@@ -62,11 +64,13 @@ on init
 on post-fs-data
     setprop vold.post_fs_data_done 1
     mkdir /data/vendor/adb 0755 root root
+    mkdir /data/vendor/devicestate 0755 root root
     mkdir /data/vendor/var 0755 root root
     mkdir /data/vendor/var/run 0755 root root
     mkdir /data/vendor/var/run/netns 0755 root root
 
     start qemu-adb-keys
+    start qemu-device-state
 
 on zygote-start
     # Create the directories used by the Wireless subsystem
@@ -197,6 +201,12 @@ service qemu-adb-keys /vendor/bin/qemu-adb-keys
     group root
     oneshot
 
+service qemu-device-state /vendor/bin/qemu-device-state
+    class core
+    user root
+    group root
+    oneshot
+
 service goldfish-logcat /system/bin/logcat -f /dev/hvc1 ${ro.boot.logcat}
     class main
     user logd
@@ -217,6 +227,15 @@ service wpa_supplicant /vendor/bin/hw/wpa_supplicant -Dnl80211 -iwlan0 -c/vendor
     group system wifi inet
     oneshot
     disabled
+
+on property:vendor.qemu.vport.bluetooth=*
+    symlink ${vendor.qemu.vport.bluetooth} /dev/bluetooth0
+
+
+service bt_vhci_forwarder /vendor/bin/bt_vhci_forwarder -virtio_console_dev=/dev/bluetooth0
+    class main
+    user bluetooth
+    group root bluetooth
 
 # Enable zram only once per boot. From:
 
