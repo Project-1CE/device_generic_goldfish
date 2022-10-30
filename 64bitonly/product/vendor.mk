@@ -33,7 +33,7 @@ PRODUCT_SYSTEM_EXT_PROPERTIES += ro.lockscreen.disable.default=1
 PRODUCT_PACKAGES += \
     android.hardware.drm-service.clearkey \
     android.hardware.gatekeeper@1.0-service.software \
-    android.hardware.usb@1.0-service \
+    android.hardware.usb-service.example \
     vulkan.ranchu \
     libandroidemu \
     libOpenglCodecCommon \
@@ -72,9 +72,14 @@ DISABLE_RILD_OEM_HOOK := true
 endif
 
 ifneq ($(EMULATOR_VENDOR_NO_BIOMETRICS), true)
-    PRODUCT_PACKAGES += android.hardware.biometrics.fingerprint-service.ranchu
-    PRODUCT_COPY_FILES += \
-        frameworks/native/data/etc/android.hardware.fingerprint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.fingerprint.xml
+PRODUCT_PACKAGES += \
+    android.hardware.biometrics.fingerprint-service.ranchu \
+    android.hardware.biometrics.face-service.example \
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.fingerprint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.fingerprint.xml \
+    frameworks/native/data/etc/android.hardware.biometrics.face.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.biometrics.face.xml \
+
 endif
 
 ifneq ($(BUILD_EMULATOR_OPENGL),false)
@@ -95,7 +100,7 @@ endif
 PRODUCT_PACKAGES += \
     bt_vhci_forwarder \
     android.hardware.bluetooth@1.1-service.btlinux \
-    android.hardware.bluetooth.audio@2.1-impl
+    android.hardware.bluetooth.audio-impl \
 
 # Bluetooth hardware properties.
 TARGET_PRODUCT_PROP := $(LOCAL_PATH)/../../bluetooth.prop
@@ -191,7 +196,6 @@ ifneq ($(EMULATOR_VENDOR_NO_SOUND),true)
 PRODUCT_PACKAGES += \
     android.hardware.audio.service \
     android.hardware.audio@7.1-impl.ranchu \
-    android.hardware.soundtrigger@2.2-impl.ranchu \
     android.hardware.audio.effect@7.0-impl \
 
 DEVICE_MANIFEST_FILE += device/generic/goldfish/audio/android.hardware.audio.effects@7.0.xml
@@ -219,9 +223,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     androidx.window.extensions \
     androidx.window.sidecar \
-
-PRODUCT_PACKAGES += \
-    android.hardware.biometrics.face@1.0-service.example
 
 PRODUCT_PROPERTY_OVERRIDES += \
     debug.stagefright.c2inputsurface=-1 \
@@ -289,7 +290,6 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.wifi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.xml \
     frameworks/native/data/etc/android.hardware.wifi.passpoint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.passpoint.xml \
     frameworks/native/data/etc/android.hardware.wifi.direct.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.wifi.direct.xml \
-    frameworks/native/data/etc/android.hardware.usb.host.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.usb.host.xml \
     device/generic/goldfish/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_audio.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_google_telephony.xml \
