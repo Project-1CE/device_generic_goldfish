@@ -28,6 +28,8 @@ PRODUCT_SOONG_NAMESPACES += \
     device/generic/goldfish \
     device/generic/goldfish-opengl
 
+TARGET_USES_MKE2FS := true
+
 # RKPD
 PRODUCT_PRODUCT_PROPERTIES += \
     remote_provisioning.enable_rkpd=true \
@@ -35,6 +37,7 @@ PRODUCT_PRODUCT_PROPERTIES += \
 
 PRODUCT_VENDOR_PROPERTIES += \
     ro.control_privapp_permissions=enforce \
+    ro.crypto.dm_default_key.options_format.version=2 \
     ro.crypto.volume.filenames_mode=aes-256-cts \
     ro.hardware.audio.tinyalsa.period_count=4 \
     ro.hardware.audio.tinyalsa.period_size_multiplier=2 \
@@ -141,9 +144,6 @@ PRODUCT_PACKAGES += \
 ifeq ($(TARGET_PRODUCT_PROP),)
 TARGET_PRODUCT_PROP := $(LOCAL_PATH)/bluetooth.prop
 endif
-
-# Bluetooth se policies
-BOARD_SEPOLICY_DIRS += system/bt/vendor_libs/linux/sepolicy
 
 PRODUCT_PACKAGES += \
     android.hardware.security.keymint-service
@@ -285,6 +285,7 @@ endif
 
 PRODUCT_COPY_FILES += \
     device/generic/goldfish/data/etc/dtb.img:dtb.img \
+    device/generic/goldfish/data/etc/encryptionkey.img:encryptionkey.img \
     device/generic/goldfish/emulator-info.txt:data/misc/emulator/version.txt \
     device/generic/goldfish/data/etc/apns-conf.xml:data/misc/apns/apns-conf.xml \
     device/generic/goldfish/radio/RadioConfig/radioconfig.xml:data/misc/emulator/config/radioconfig.xml \

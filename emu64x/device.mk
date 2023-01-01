@@ -14,9 +14,4 @@
 # limitations under the License.
 #
 
-$(call inherit-product, device/generic/goldfish/device_common.mk)
-
-# Ensure we package the BIOS files too.
-PRODUCT_HOST_PACKAGES += \
-	bios.bin \
-	vgabios-cirrus.bin \
+# This file to be retired.
