@@ -27,7 +27,28 @@ PRODUCT_SOONG_NAMESPACES += \
     device/generic/goldfish \
     device/generic/goldfish-opengl
 
-PRODUCT_SYSTEM_EXT_PROPERTIES += ro.lockscreen.disable.default=1
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.control_privapp_permissions=enforce \
+    ro.crypto.volume.filenames_mode=aes-256-cts \
+    ro.hardware.audio.tinyalsa.period_count=4 \
+    ro.hardware.audio.tinyalsa.period_size_multiplier=4 \
+    ro.hardware.audio.tinyalsa.host_latency_ms=30 \
+    ro.hardware.power=ranchu \
+    ro.hardware.vulkan=ranchu \
+    ro.incremental.enable=yes \
+    ro.logd.size=1M \
+    ro.kernel.qemu=1 \
+    ro.soc.manufacturer=AOSP \
+    ro.soc.model=ranchu \
+    ro.surface_flinger.supports_background_blur=1 \
+    ro.zygote.disable_gl_preload=1 \
+    debug.sf.vsync_reactor_ignore_present_fences=true \
+    debug.stagefright.c2inputsurface=-1 \
+    debug.stagefright.ccodec=4 \
+    graphics.gpu.profiler.support=true \
+    persist.sys.zram_enabled=1 \
+    wifi.direct.interface=p2p-dev-wlan0 \
+    wifi.interface=wlan0 \
 
 # Device modules
 PRODUCT_PACKAGES += \
@@ -102,7 +123,9 @@ PRODUCT_PACKAGES += \
     android.hardware.bluetooth.audio-impl \
 
 # Bluetooth hardware properties.
+ifeq ($(TARGET_PRODUCT_PROP),)
 TARGET_PRODUCT_PROP := $(LOCAL_PATH)/../../bluetooth.prop
+endif
 
 # Bluetooth se policies
 BOARD_SEPOLICY_DIRS += system/bt/vendor_libs/linux/sepolicy
@@ -149,16 +172,6 @@ PRODUCT_COPY_FILES += \
     device/generic/goldfish/sensors/hals.conf:$(TARGET_COPY_OUT_VENDOR)/etc/sensors/hals.conf
 endif
 
-PRODUCT_PROPERTY_OVERRIDES += ro.control_privapp_permissions=enforce
-PRODUCT_PROPERTY_OVERRIDES += ro.hardware.power=ranchu
-PRODUCT_PROPERTY_OVERRIDES += ro.crypto.volume.filenames_mode=aes-256-cts
-PRODUCT_VENDOR_PROPERTIES += graphics.gpu.profiler.support=true
-
-PRODUCT_PROPERTY_OVERRIDES += persist.sys.zram_enabled=1 \
-
-# Prevent logcat from getting canceled early on in boot
-PRODUCT_PROPERTY_OVERRIDES += ro.logd.size=1M \
-
 ifneq ($(EMULATOR_VENDOR_NO_CAMERA),true)
 PRODUCT_SOONG_NAMESPACES += \
     hardware/google/camera \
@@ -169,7 +182,6 @@ PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4-impl \
     camera.ranchu \
     android.hardware.camera.provider@2.7-service-google \
-    android.hardware.camera.provider@2.7-impl-google \
     libgooglecamerahwl_impl \
 
 PRODUCT_COPY_FILES += \
@@ -221,13 +233,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     androidx.window.extensions \
     androidx.window.sidecar \
-
-PRODUCT_PROPERTY_OVERRIDES += \
-    debug.stagefright.c2inputsurface=-1 \
-    debug.stagefright.ccodec=4
-
-# Enable Incremental on the device via kernel driver
-PRODUCT_PROPERTY_OVERRIDES += ro.incremental.enable=yes
 
 # "Hello, world!" HAL implementations, mostly for compliance
 PRODUCT_PACKAGES += \

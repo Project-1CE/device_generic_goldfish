@@ -24,7 +24,6 @@
 #define LOG_TAG "EmulatedCamera_FakeDevice"
 #define FAKE_CAMERA_SENSOR "FakeRotatingCameraSensor"
 #include <log/log.h>
-#include "EmulatedFakeCamera.h"
 #include "EmulatedFakeRotatingCameraDevice.h"
 #include <qemu_pipe_bp.h>
 
@@ -408,18 +407,8 @@ int EmulatedFakeRotatingCameraDevice::init_gl_surface(int width, int height)
 }
 
 EmulatedFakeRotatingCameraDevice::EmulatedFakeRotatingCameraDevice():
-    mObjectLock(),
-    mOpenglReady(false),
-    mState(ECDS_CONNECTED)
-{
-    // not much to initialize
-    mState = ECDS_INITIALIZED;
-}
-
-EmulatedFakeRotatingCameraDevice::~EmulatedFakeRotatingCameraDevice()
-{
-    mState = ECDS_INVALID;
-}
+    mState(ECDS_INITIALIZED)
+{}
 
 /****************************************************************************
  * Emulated camera device abstract interface implementation.
