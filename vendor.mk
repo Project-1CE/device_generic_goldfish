@@ -62,10 +62,9 @@ PRODUCT_PACKAGES += \
     qemu-export-property \
     qemu-props \
     stagefright \
-    android.hardware.graphics.composer@2.4-service \
-    android.hardware.graphics.allocator@3.0-service \
+    android.hardware.graphics.allocator@3.0-service.ranchu \
     android.hardware.graphics.mapper@3.0-impl-ranchu \
-    hwcomposer.ranchu \
+    android.hardware.graphics.composer3-service.ranchu \
     toybox_vendor \
     android.hardware.wifi@1.0-service \
     android.hardware.media.c2@1.0-service-goldfish \
@@ -118,9 +117,9 @@ endif
 
 # Enable bluetooth
 PRODUCT_PACKAGES += \
-    bt_vhci_forwarder \
-    android.hardware.bluetooth@1.1-service.btlinux \
+    android.hardware.bluetooth-service.default \
     android.hardware.bluetooth.audio-impl \
+    bt_vhci_forwarder \
 
 # Bluetooth hardware properties.
 ifeq ($(TARGET_PRODUCT_PROP),)
@@ -178,9 +177,7 @@ PRODUCT_SOONG_NAMESPACES += \
     hardware/google/camera/devices/EmulatedCamera \
 
 PRODUCT_PACKAGES += \
-    android.hardware.camera.provider@2.4-service \
-    android.hardware.camera.provider@2.4-impl \
-    camera.ranchu \
+    android.hardware.camera.provider.ranchu \
     android.hardware.camera.provider@2.7-service-google \
     libgooglecamerahwl_impl \
 
@@ -228,10 +225,8 @@ PRODUCT_PACKAGES += \
     hostapd \
     wpa_supplicant \
 
-# Extension implementation for Jetpack WindowManager
-PRODUCT_PACKAGES += \
-    androidx.window.extensions \
-    androidx.window.sidecar \
+# Window Extensions
+$(call inherit-product, $(SRC_TARGET_DIR)/product/window_extensions.mk)
 
 # "Hello, world!" HAL implementations, mostly for compliance
 PRODUCT_PACKAGES += \
