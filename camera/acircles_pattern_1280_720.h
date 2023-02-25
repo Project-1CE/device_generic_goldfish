@@ -14,29 +14,7 @@
  * limitations under the License.
  */
 
-#pragma once
-
-#include <vector>
-#include <stdint.h>
-#include <system/graphics.h>
-
-namespace android {
-namespace hardware {
-namespace camera {
-namespace provider {
-namespace implementation {
-namespace yuv {
-
-size_t NV21size(size_t width, size_t height);
-
-android_ycbcr NV21init(size_t width, size_t height, void* data);
-
-android_ycbcr toNV21Shallow(size_t width, size_t height, const android_ycbcr& ycbcr,
-                            std::vector<uint8_t>* data);
-
-}  // namespace yuv
-}  // namespace implementation
-}  // namespace provider
-}  // namespace camera
-}  // namespace hardware
-}  // namespace android
+/* acircles_pattern_1280_720.yuv */
+constexpr unsigned kAcirclesPatternWidth = 1280;
+constexpr unsigned kAcirclesPatternHeight = 720;
+extern const unsigned char kAcirclesPattern[1382400];

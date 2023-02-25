@@ -14,27 +14,33 @@
  * limitations under the License.
  */
 
-#pragma once
+#include <android-base/properties.h>
+#include <log/log.h>
 
-#include <vector>
-#include <stdint.h>
-#include <system/graphics.h>
+#include "debug.h"
+#include "FakeRotatingCamera.h"
+#include "list_fake_rotating_cameras.h"
 
 namespace android {
 namespace hardware {
 namespace camera {
 namespace provider {
 namespace implementation {
-namespace yuv {
+namespace hw {
+namespace {
 
-size_t NV21size(size_t width, size_t height);
+} // namespace
 
-android_ycbcr NV21init(size_t width, size_t height, void* data);
+bool listFakeRotatingCameras(const std::function<void(HwCameraFactory)>& cameraSink) {
+    if (base::GetBoolProperty("ro.boot.qemu.legacy_fake_camera", false)) {
+        // only the `backfacing=true` camera is supported for now.
+        cameraSink([]() { return std::make_unique<FakeRotatingCamera>(true); });
+    }
 
-android_ycbcr toNV21Shallow(size_t width, size_t height, const android_ycbcr& ycbcr,
-                            std::vector<uint8_t>* data);
+    return true;
+}
 
-}  // namespace yuv
+}  // namespace hw
 }  // namespace implementation
 }  // namespace provider
 }  // namespace camera

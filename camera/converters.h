@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <vector>
 #include <stdint.h>
 #include <system/graphics.h>
 
@@ -25,16 +24,12 @@ namespace hardware {
 namespace camera {
 namespace provider {
 namespace implementation {
-namespace yuv {
+namespace conv {
 
-size_t NV21size(size_t width, size_t height);
+bool rgba2yuv(size_t width, size_t height,
+              const uint32_t* rgba, const android_ycbcr& ycbcr);
 
-android_ycbcr NV21init(size_t width, size_t height, void* data);
-
-android_ycbcr toNV21Shallow(size_t width, size_t height, const android_ycbcr& ycbcr,
-                            std::vector<uint8_t>* data);
-
-}  // namespace yuv
+}  // namespace conv
 }  // namespace implementation
 }  // namespace provider
 }  // namespace camera

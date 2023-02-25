@@ -14,27 +14,21 @@
  * limitations under the License.
  */
 
-#pragma once
-
-#include <vector>
-#include <stdint.h>
-#include <system/graphics.h>
+#include <ui/GraphicBufferAllocator.h>
+#include "AutoNativeHandle.h"
 
 namespace android {
 namespace hardware {
 namespace camera {
 namespace provider {
 namespace implementation {
-namespace yuv {
 
-size_t NV21size(size_t width, size_t height);
+void AutoAllocatorNativeHandleDeleter::operator()(const native_handle_t* h) const {
+    if (h) {
+        GraphicBufferAllocator::get().free(h);
+    }
+}
 
-android_ycbcr NV21init(size_t width, size_t height, void* data);
-
-android_ycbcr toNV21Shallow(size_t width, size_t height, const android_ycbcr& ycbcr,
-                            std::vector<uint8_t>* data);
-
-}  // namespace yuv
 }  // namespace implementation
 }  // namespace provider
 }  // namespace camera

@@ -83,35 +83,31 @@ std::tuple<PixelFormat, BufferUsage, Dataspace, int32_t>
 QemuCamera::overrideStreamParams(const PixelFormat format,
                                  const BufferUsage usage,
                                  const Dataspace dataspace) const {
-    // input streams are not supported
+    constexpr BufferUsage kExtraUsage = usageOr(BufferUsage::CAMERA_OUTPUT,
+                                                BufferUsage::CPU_WRITE_OFTEN);
+
     switch (format) {
     case PixelFormat::IMPLEMENTATION_DEFINED:
         if (usageTest(usage, BufferUsage::VIDEO_ENCODER)) {
-            return {PixelFormat::YCBCR_420_888,
-                    usageOr(usage, BufferUsage::CAMERA_OUTPUT),
+            return {PixelFormat::YCBCR_420_888, usageOr(usage, kExtraUsage),
                     Dataspace::JFIF, 8};
         } else {
-            return {PixelFormat::RGBA_8888,
-                    usageOr(usage, BufferUsage::CAMERA_OUTPUT),
+            return {PixelFormat::RGBA_8888, usageOr(usage, kExtraUsage),
                     Dataspace::UNKNOWN, 4};
         }
 
     case PixelFormat::YCBCR_420_888:
-        return {PixelFormat::YCBCR_420_888,
-                usageOr(usage, BufferUsage::CAMERA_OUTPUT),
-                Dataspace::JFIF,
-                usageTest(usage, BufferUsage::VIDEO_ENCODER) ? 8 : 4};
+        return {PixelFormat::YCBCR_420_888, usageOr(usage, kExtraUsage),
+                Dataspace::JFIF, usageTest(usage, BufferUsage::VIDEO_ENCODER) ? 8 : 4};
 
     case PixelFormat::RGBA_8888:
-        return {PixelFormat::RGBA_8888,
-                usageOr(usage, BufferUsage::CAMERA_OUTPUT),
-                Dataspace::UNKNOWN,
-                usageTest(usage, BufferUsage::VIDEO_ENCODER) ? 8 : 4};
+        return {PixelFormat::RGBA_8888, usageOr(usage, kExtraUsage),
+                Dataspace::UNKNOWN, usageTest(usage, BufferUsage::VIDEO_ENCODER) ? 8 : 4};
 
     case PixelFormat::BLOB:
         switch (dataspace) {
         case Dataspace::JFIF:
-            return {PixelFormat::BLOB, BufferUsage::CAMERA_OUTPUT,
+            return {PixelFormat::BLOB, usageOr(usage, kExtraUsage),
                     Dataspace::JFIF, 4};  // JPEG
         default:
             return {format, usage, dataspace, FAILURE(kErrorBadDataspace)};
@@ -309,10 +305,10 @@ DelayedStreamBuffer QemuCamera::captureFrameJpeg(const StreamInfo& si,
         if (ok && image && csb->waitAcquireFence(frameDurationNs / 1000000)) {
             android_ycbcr imageYcbcr;
             if (GraphicBufferMapper::get().lockYCbCr(
-                    image, static_cast<uint32_t>(BufferUsage::CPU_WRITE_OFTEN),
+                    image, static_cast<uint32_t>(BufferUsage::CPU_READ_OFTEN),
                     {imageSize.width, imageSize.height}, &imageYcbcr) == NO_ERROR) {
-                sb = compressJpeg(imageSize, imageYcbcr, metadata, csb,
-                                  jpegBufferSize);
+                sb = csb->finish(compressJpeg(imageSize, imageYcbcr, metadata,
+                                              csb->getBuffer(), jpegBufferSize));
                 LOG_ALWAYS_FATAL_IF(GraphicBufferMapper::get().unlock(image) != NO_ERROR);
             } else {
                 sb = csb->finish(FAILURE(false));
@@ -333,14 +329,16 @@ const native_handle_t* QemuCamera::captureFrameForCompressing(
         const Rect<uint16_t> dim,
         const PixelFormat bufferFormat,
         const uint32_t qemuFormat) const {
+    constexpr BufferUsage kUsage = usageOr(BufferUsage::CAMERA_OUTPUT,
+                                           BufferUsage::CPU_READ_OFTEN);
+
     GraphicBufferAllocator& gba = GraphicBufferAllocator::get();
     const native_handle_t* image = nullptr;
     uint32_t stride;
 
-    gba.allocate(dim.width, dim.height, static_cast<int>(bufferFormat), 1,
-                 static_cast<uint64_t>(BufferUsage::CAMERA_OUTPUT),
-                 &image, &stride, "QemuCamera");
-    if (!image) {
+    if (gba.allocate(dim.width, dim.height, static_cast<int>(bufferFormat), 1,
+                     static_cast<uint64_t>(kUsage), &image, &stride,
+                     "QemuCamera") != NO_ERROR) {
         return FAILURE(nullptr);
     }
 

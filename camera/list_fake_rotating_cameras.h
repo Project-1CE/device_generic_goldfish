@@ -16,25 +16,19 @@
 
 #pragma once
 
-#include <vector>
-#include <stdint.h>
-#include <system/graphics.h>
+#include <functional>
+#include "HwCamera.h"
 
 namespace android {
 namespace hardware {
 namespace camera {
 namespace provider {
 namespace implementation {
-namespace yuv {
+namespace hw {
 
-size_t NV21size(size_t width, size_t height);
+bool listFakeRotatingCameras(const std::function<void(HwCameraFactory)>& cameraSink);
 
-android_ycbcr NV21init(size_t width, size_t height, void* data);
-
-android_ycbcr toNV21Shallow(size_t width, size_t height, const android_ycbcr& ycbcr,
-                            std::vector<uint8_t>* data);
-
-}  // namespace yuv
+}  // namespace hw
 }  // namespace implementation
 }  // namespace provider
 }  // namespace camera
