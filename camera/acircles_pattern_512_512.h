@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-/* acircles_pattern_1280_720.yuv */
-constexpr unsigned kAcirclesPatternWidth = 1280;
-constexpr unsigned kAcirclesPatternHeight = 720;
-extern const unsigned char kAcirclesPattern[1382400];
+
+constexpr unsigned kAcirclesPatternWidth = 512;
+constexpr unsigned kAcirclesPatternHeight = 512;
+
+/* acircles_pattern: 512x512 5 color RLE:
+ * nnnnnnn0 - color4
+ * nnnnnCC1 - colorCC
+ */
+extern const unsigned char kAcirclesPatternRLE[9621];
