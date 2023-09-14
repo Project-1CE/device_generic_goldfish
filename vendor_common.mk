@@ -27,6 +27,11 @@ PRODUCT_SOONG_NAMESPACES += \
     device/generic/goldfish \
     device/generic/goldfish-opengl
 
+# RKPD
+PRODUCT_PRODUCT_PROPERTIES += \
+    remote_provisioning.enable_rkpd=true \
+    remote_provisioning.hostname=remoteprovisioning.googleapis.com
+
 PRODUCT_VENDOR_PROPERTIES += \
     ro.control_privapp_permissions=enforce \
     ro.crypto.volume.filenames_mode=aes-256-cts \
@@ -255,7 +260,7 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/window_extensions.mk)
 # "Hello, world!" HAL implementations, mostly for compliance
 PRODUCT_PACKAGES += \
     android.hardware.atrace@1.0-service \
-    android.hardware.authsecret-service.example \
+    com.android.hardware.authsecret \
     android.hardware.contexthub-service.example \
     android.hardware.dumpstate-service.example \
     android.hardware.health-service.example \
