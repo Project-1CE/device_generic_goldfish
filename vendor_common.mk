@@ -39,7 +39,6 @@ PRODUCT_VENDOR_PROPERTIES += \
     ro.hardware.audio.tinyalsa.period_size_multiplier=2 \
     ro.hardware.audio.tinyalsa.host_latency_ms=80 \
     ro.hardware.power=ranchu \
-    ro.hardware.vulkan=ranchu \
     ro.incremental.enable=yes \
     ro.logd.size=1M \
     ro.kernel.qemu=1 \
@@ -216,7 +215,6 @@ PRODUCT_COPY_FILES += \
     device/generic/goldfish/camera/media/codecs.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs.xml \
     device/generic/goldfish/camera/media/codecs_performance.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_performance.xml \
     device/generic/goldfish/camera/media/codecs_performance_c2.xml:$(TARGET_COPY_OUT_VENDOR)/etc/media_codecs_performance_c2.xml \
-    frameworks/native/data/etc/android.hardware.camera.ar.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.ar.xml \
     frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.flash-autofocus.xml \
     frameworks/native/data/etc/android.hardware.camera.concurrent.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.concurrent.xml \
     frameworks/native/data/etc/android.hardware.camera.front.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.front.xml \
