@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2020 The Android Open Source Project
+# Copyright (C) 2023 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,4 +14,9 @@
 # limitations under the License.
 #
 
-$(call inherit-product, device/generic/goldfish/device_common.mk)
+PRODUCT_PACKAGES += MultiDisplayProvider
+
+PRODUCT_ARTIFACT_PATH_REQUIREMENT_ALLOWED_LIST := \
+    system/lib/libemulator_multidisplay_jni.so \
+    system/lib64/libemulator_multidisplay_jni.so \
+    system/priv-app/MultiDisplayProvider/MultiDisplayProvider.apk \
