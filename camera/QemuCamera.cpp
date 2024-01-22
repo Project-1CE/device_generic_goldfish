@@ -68,8 +68,37 @@ constexpr float   kDefaultAperture = 4.0;
 
 constexpr int32_t kDefaultJpegQuality = 85;
 
+const float kColorCorrectionGains[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+const camera_metadata_rational_t kRationalZero = {
+    .numerator = 0, .denominator = 128
+};
+const camera_metadata_rational_t kRationalOne = {
+    .numerator = 128, .denominator = 128
+};
+
+const camera_metadata_rational_t kColorCorrectionTransform[9] = {
+    kRationalOne, kRationalZero, kRationalZero,
+    kRationalZero, kRationalOne, kRationalZero,
+    kRationalZero, kRationalZero, kRationalOne
+};
+
 const camera_metadata_rational kNeutralColorPoint[3] = {
     {1023, 1}, {1023, 1}, {1023, 1}
+};
+
+const double kSensorNoiseProfile[8] = {
+    1.0, .000001, 1.0, .000001, 1.0, .000001, 1.0, .000001
+};
+
+// system/media/camera/docs/docs.html#dynamic_android.statistics.lensShadingMap
+const float kLensShadingMap[] = {
+    1.3, 1.2, 1.15, 1.2, 1.2, 1.2, 1.15, 1.2,
+    1.1, 1.2, 1.2, 1.2, 1.3, 1.2, 1.3, 1.3,
+    1.2, 1.2, 1.25, 1.1, 1.1, 1.1, 1.1, 1.0,
+    1.0, 1.0, 1.0, 1.0, 1.2, 1.3, 1.25, 1.2,
+    1.3, 1.2, 1.2, 1.3, 1.2, 1.15, 1.1, 1.2,
+    1.2, 1.1, 1.0, 1.2, 1.3, 1.15, 1.2, 1.3
 };
 
 constexpr BufferUsage usageOr(const BufferUsage a, const BufferUsage b) {
@@ -462,12 +491,12 @@ CameraMetadata QemuCamera::applyMetadata(const CameraMetadata& metadata) {
     const camera_metadata_enum_android_control_af_mode_t afMode =
         find_camera_metadata_ro_entry(raw, ANDROID_CONTROL_AF_MODE, &entry) ?
             ANDROID_CONTROL_AF_MODE_OFF :
-            static_cast<camera_metadata_enum_android_control_af_mode_t>(entry.data.i32[0]);
+            static_cast<camera_metadata_enum_android_control_af_mode_t>(entry.data.u8[0]);
 
     const camera_metadata_enum_android_control_af_trigger_t afTrigger =
         find_camera_metadata_ro_entry(raw, ANDROID_CONTROL_AF_TRIGGER, &entry) ?
             ANDROID_CONTROL_AF_TRIGGER_IDLE :
-            static_cast<camera_metadata_enum_android_control_af_trigger_t>(entry.data.i32[0]);
+            static_cast<camera_metadata_enum_android_control_af_trigger_t>(entry.data.u8[0]);
 
     const auto af = mAFStateMachine(afMode, afTrigger);
 
@@ -476,21 +505,29 @@ CameraMetadata QemuCamera::applyMetadata(const CameraMetadata& metadata) {
 
     CameraMetadataMap m = parseCameraMetadataMap(metadata);
 
+    m[ANDROID_COLOR_CORRECTION_GAINS] = kColorCorrectionGains;
+    m[ANDROID_COLOR_CORRECTION_TRANSFORM] = kColorCorrectionTransform;
     m[ANDROID_CONTROL_AE_STATE] = uint8_t(ANDROID_CONTROL_AE_STATE_CONVERGED);
     m[ANDROID_CONTROL_AF_STATE] = uint8_t(af.first);
     m[ANDROID_CONTROL_AWB_STATE] = uint8_t(ANDROID_CONTROL_AWB_STATE_CONVERGED);
     m[ANDROID_FLASH_STATE] = uint8_t(ANDROID_FLASH_STATE_UNAVAILABLE);
     m[ANDROID_LENS_APERTURE] = mAperture;
     m[ANDROID_LENS_FOCUS_DISTANCE] = af.second;
-    m[ANDROID_LENS_STATE] = uint8_t(ANDROID_LENS_STATE_STATIONARY);
+    m[ANDROID_LENS_STATE] = uint8_t(getAfLensState(af.first));
     m[ANDROID_REQUEST_PIPELINE_DEPTH] = uint8_t(4);
     m[ANDROID_SENSOR_FRAME_DURATION] = mFrameDurationNs;
     m[ANDROID_SENSOR_EXPOSURE_TIME] = mSensorExposureDurationNs;
     m[ANDROID_SENSOR_SENSITIVITY] = mSensorSensitivity;
     m[ANDROID_SENSOR_TIMESTAMP] = int64_t(0);
     m[ANDROID_SENSOR_NEUTRAL_COLOR_POINT] = kNeutralColorPoint;
+    m[ANDROID_SENSOR_NOISE_PROFILE] = kSensorNoiseProfile;
     m[ANDROID_SENSOR_ROLLING_SHUTTER_SKEW] = kMinSensorExposureTimeNs;
     m[ANDROID_STATISTICS_SCENE_FLICKER] = uint8_t(ANDROID_STATISTICS_SCENE_FLICKER_NONE);
+
+    if (!find_camera_metadata_ro_entry(raw, ANDROID_STATISTICS_LENS_SHADING_MAP_MODE, &entry)
+        && (entry.data.u8[0] == ANDROID_STATISTICS_LENS_SHADING_MAP_MODE_ON)) {
+        m[ANDROID_STATISTICS_LENS_SHADING_MAP] = kLensShadingMap;
+    }
 
     std::optional<CameraMetadata> maybeSerialized =
         serializeCameraMetadataMap(m);
