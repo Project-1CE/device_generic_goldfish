@@ -113,16 +113,10 @@ PRODUCT_PACKAGES += android.hardware.graphics.allocator-service.ranchu
 endif
 
 ifneq ($(EMULATOR_DISABLE_RADIO),true)
-PRODUCT_PACKAGES += \
-    libcuttlefish-ril-2 \
-    libgoldfish-rild \
-    EmulatorRadioConfig \
-    EmulatorTetheringConfigOverlay
+PRODUCT_PACKAGES += android.hardware.radio-service.ranchu
 
-DEVICE_MANIFEST_FILE += device/generic/goldfish/hals/radio/manifest.radio.xml
-DISABLE_RILD_OEM_HOOK := true
-# For customize cflags for libril share library building by soong.
-$(call soong_config_set,ril,disable_rild_oem_hook,true)
+# NR 5G, LTE, TD-SCDMA, CDMA, EVDO, GSM and WCDMA
+PRODUCT_VENDOR_PROPERTIES += ro.telephony.default_network=33
 
 PRODUCT_COPY_FILES += \
     device/generic/goldfish/hals/radio/init.system_ext.radio.rc:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/init/init.system_ext.radio.rc \
