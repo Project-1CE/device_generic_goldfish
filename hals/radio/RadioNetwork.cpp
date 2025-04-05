@@ -31,7 +31,10 @@ namespace android {
 namespace hardware {
 namespace radio {
 namespace implementation {
+using network::AccessTechnologySpecificInfo;
 using network::EutranBands;
+using network::EutranRegistrationInfo;
+using network::Cdma2000RegistrationInfo;
 using network::CellConnectionStatus;
 using network::CellIdentity;
 using network::CellIdentityCdma;
@@ -198,14 +201,13 @@ CellIdentityResult getCellIdentityImpl(OperatorInfo operatorInfo,
                                                                 areaCode, cellId));
         break;
     case ModemTechnology::WCDMA:
+    case ModemTechnology::EVDO:
         cellIdentity.set<CellIdentity::wcdma>(makeCellIdentityWcdma(std::move(operatorInfo),
                                                                     areaCode, cellId));
         break;
     case ModemTechnology::CDMA:
         cellIdentity.set<CellIdentity::cdma>(makeCellIdentityCdma(std::move(operatorInfo)));
         break;
-    case ModemTechnology::EVDO:
-        return {FAILURE_V(RadioError::INTERNAL_ERR, "%s", "EVDO"), {}};
     case ModemTechnology::TDSCDMA:
         cellIdentity.set<CellIdentity::tdscdma>(makeCellIdentityTdscdma(std::move(operatorInfo),
                                                                         areaCode, cellId));
@@ -250,7 +252,11 @@ CellIdentityResult getCellIdentityImpl(const int areaCode, const int cellId, std
             response->unexpected(FAILURE_DEBUG_PREFIX, __func__);
         }
     } else if (const CmeError* cmeError = response->get_if<CmeError>()) {
-        return fail(cmeError->getErrorAndLog(FAILURE_DEBUG_PREFIX, __func__, __LINE__));
+        const RadioError status =
+            (cmeError->error == RadioError::OPERATION_NOT_ALLOWED) ?
+                RadioError::RADIO_NOT_AVAILABLE : cmeError->error;
+
+        return fail(FAILURE_V(status, "%s", toString(status).c_str()));
     } else {
         response->unexpected(FAILURE_DEBUG_PREFIX, __func__);
     }
@@ -278,7 +284,8 @@ std::pair<RadioError, CellInfo> buildCellInfo(const bool registered,
                                               SignalStrength signalStrength) {
     CellInfo cellInfo = {
         .registered = registered,
-        .connectionStatus = CellConnectionStatus::PRIMARY_SERVING,
+        .connectionStatus = registered ?
+            CellConnectionStatus::PRIMARY_SERVING : CellConnectionStatus::NONE,
     };
 
     switch (cellIdentity.getTag()) {
@@ -343,6 +350,65 @@ std::pair<RadioError, CellInfo> buildCellInfo(const bool registered,
     }
 
     return {RadioError::NONE, std::move(cellInfo)};
+}
+
+void setAccessTechnologySpecificInfo(
+        AccessTechnologySpecificInfo* accessTechnologySpecificInfo,
+        const RadioTechnology rat) {
+    switch (rat) {
+    case RadioTechnology::LTE:
+    case RadioTechnology::LTE_CA: {
+            EutranRegistrationInfo eri = {
+                .lteVopsInfo = {
+                    .isVopsSupported = false,
+                    .isEmcBearerSupported = false,
+                },
+            };
+
+            accessTechnologySpecificInfo->set<
+                AccessTechnologySpecificInfo::eutranInfo>(std::move(eri));
+        }
+        break;
+
+    case RadioTechnology::NR: {
+            EutranRegistrationInfo eri = {
+                .nrIndicators = {
+                    .isNrAvailable = true,
+                    .isDcNrRestricted = false,
+                    .isEndcAvailable = false,
+                },
+            };
+
+            accessTechnologySpecificInfo->set<
+                AccessTechnologySpecificInfo::eutranInfo>(std::move(eri));
+        }
+        break;
+
+    case RadioTechnology::HSUPA:
+    case RadioTechnology::HSDPA:
+    case RadioTechnology::HSPA:
+    case RadioTechnology::HSPAP:
+    case RadioTechnology::UMTS:
+    case RadioTechnology::IS95A:
+    case RadioTechnology::IS95B:
+    case RadioTechnology::ONE_X_RTT:
+    case RadioTechnology::EVDO_0:
+    case RadioTechnology::EVDO_A:
+    case RadioTechnology::EVDO_B:
+    case RadioTechnology::EHRPD:
+    case RadioTechnology::TD_SCDMA: {
+            Cdma2000RegistrationInfo cri = {
+                .systemIsInPrl = Cdma2000RegistrationInfo::PRL_INDICATOR_IN_PRL,
+            };
+
+            accessTechnologySpecificInfo->set<
+                AccessTechnologySpecificInfo::cdmaInfo>(std::move(cri));
+        }
+        break;
+
+    default:
+        break;
+    }
 }
 
 }  // namespace
@@ -573,6 +639,10 @@ ScopedAStatus RadioNetwork::getDataRegistrationState(const int32_t serial) {
             }
         }
 
+        setAccessTechnologySpecificInfo(
+            &regStateResult.accessTechnologySpecificInfo,
+            regStateResult.rat);
+
         if (status == RadioError::NONE) {
             NOT_NULL(mRadioNetworkResponse)->getDataRegistrationStateResponse(
                 makeRadioResponseInfo(serial), std::move(regStateResult));
@@ -648,7 +718,8 @@ ScopedAStatus RadioNetwork::getOperator(const int32_t serial) {
                 response->unexpected(FAILURE_DEBUG_PREFIX, kFunc);
             }
         } else if (const CmeError* cmeError = response->get_if<CmeError>()) {
-            status = cmeError->getErrorAndLog(FAILURE_DEBUG_PREFIX, kFunc, __LINE__);
+            status = (cmeError->error == RadioError::OPERATION_NOT_ALLOWED) ?
+                    RadioError::RADIO_NOT_AVAILABLE : cmeError->error;
         } else {
             response->unexpected(FAILURE_DEBUG_PREFIX, kFunc);
         }
@@ -757,7 +828,11 @@ ScopedAStatus RadioNetwork::getVoiceRegistrationState(const int32_t serial) {
             }
         }
 
-       if (status == RadioError::NONE) {
+        setAccessTechnologySpecificInfo(
+            &regStateResult.accessTechnologySpecificInfo,
+            regStateResult.rat);
+
+        if (status == RadioError::NONE) {
             NOT_NULL(mRadioNetworkResponse)->getVoiceRegistrationStateResponse(
                 makeRadioResponseInfo(serial), std::move(regStateResult));
             return true;
@@ -798,7 +873,7 @@ ScopedAStatus RadioNetwork::setAllowedNetworkTypesBitmap(const int32_t serial,
             ratUtils::modemTechnologyBitmaskFromRadioTechnologyBitmask(networkTypeBitmap);
 
         const std::string request = std::format("AT+CTEC={0:d},\"{1:X}\"",
-            static_cast<int>(currentTech), techBitmask);
+            (1 << static_cast<int>(currentTech)), techBitmask);
         const AtResponsePtr response =
             mAtConversation(requestPipe, request,
                             [](const AtResponse& response) -> bool {
@@ -1230,8 +1305,20 @@ void RadioNetwork::atResponseSink(const AtResponsePtr& response) {
 }
 
 void RadioNetwork::handleUnsolicited(const AtResponse::CFUN& cfun) {
+    bool changed;
+
     std::lock_guard<std::mutex> lock(mMtx);
     mRadioState = cfun.state;
+    if (cfun.state == modem::RadioState::OFF) {
+        changed = mCreg.state != network::RegState::NOT_REG_MT_NOT_SEARCHING_OP;
+        mCreg.state = network::RegState::NOT_REG_MT_NOT_SEARCHING_OP;
+        mCgreg.state = network::RegState::NOT_REG_MT_NOT_SEARCHING_OP;
+    }
+
+    if (changed && mRadioNetworkIndication) {
+        mRadioNetworkIndication->networkStateChanged(RadioIndicationType::UNSOLICITED);
+        mRadioNetworkIndication->imsNetworkStateChanged(RadioIndicationType::UNSOLICITED);
+    }
 }
 
 void RadioNetwork::handleUnsolicited(const AtResponse::CREG& creg) {
@@ -1262,8 +1349,6 @@ void RadioNetwork::handleUnsolicited(const AtResponse::CSQ& csq) {
         std::lock_guard<std::mutex> lock(mMtx);
         mCsq = csq;
         poweredOn = (mRadioState == modem::RadioState::ON);
-        const bool registered =
-            (mCreg.state == network::RegState::REG_HOME);
 
         if (poweredOn) {
             signalStrength = csq.toSignalStrength();
@@ -1277,6 +1362,9 @@ void RadioNetwork::handleUnsolicited(const AtResponse::CSQ& csq) {
                                         mCreg.areaCode, mCreg.cellId,
                                         nullptr);
                 if (status == RadioError::NONE) {
+                    const bool registered =
+                        (mCreg.state == network::RegState::REG_HOME);
+
                     CellInfo cellinfo;
                     std::tie(status, cellinfo) =
                         buildCellInfo(registered, std::move(cellIdentity),
@@ -1324,11 +1412,14 @@ void RadioNetwork::handleUnsolicited(const AtResponse::CGFPCCFG& cgfpccfg) {
     using network::LinkCapacityEstimate;
     using network::PhysicalChannelConfig;
 
+    bool registered;
     int cellId;
     int primaryBandwidth = 0;
     int secondaryBandwidth = 0;
     {
         std::lock_guard<std::mutex> lock(mMtx);
+        registered = (mRadioState == modem::RadioState::ON) &&
+            (mCreg.state == network::RegState::REG_HOME);
         cellId = mCreg.cellId;
         if (cgfpccfg.status == CellConnectionStatus::PRIMARY_SERVING) {
             mPrimaryBandwidth = cgfpccfg.bandwidth;
@@ -1339,7 +1430,7 @@ void RadioNetwork::handleUnsolicited(const AtResponse::CGFPCCFG& cgfpccfg) {
         }
     }
 
-    if (mRadioNetworkIndication) {
+    if (registered && mRadioNetworkIndication) {
         {
             PhysicalChannelConfig physicalChannelConfig = {
                 .status = cgfpccfg.status,

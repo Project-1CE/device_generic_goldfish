@@ -23,7 +23,9 @@ $(call inherit-product-if-exists, frameworks/native/build/phone-xhdpi-2048-dalvi
 # Enable Scoped Storage related
 $(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
 
+ifneq ($(EMULATOR_VENDOR_NO_MANIFEST_FILE),true)
 DEVICE_MANIFEST_FILE += device/generic/goldfish/manifest.xml
+endif
 
 PRODUCT_SOONG_NAMESPACES += \
     device/generic/goldfish \
@@ -69,7 +71,6 @@ PRODUCT_VENDOR_PROPERTIES += \
     debug.stagefright.c2inputsurface=-1 \
     debug.stagefright.ccodec=4 \
     graphics.gpu.profiler.support=false \
-    persist.sys.usb.config="" \
     persist.sys.zram_enabled=1 \
     wifi.direct.interface=p2p-dev-wlan0 \
     wifi.interface=wlan0 \
@@ -149,14 +150,15 @@ PRODUCT_PACKAGES += \
     libGLESv2_angle
 endif
 
+ifneq ($(EMULATOR_VENDOR_NO_THREADNETWORK), true)
 # Enable Thread Network HAL with simulation RCP
 PRODUCT_PACKAGES += \
     com.android.hardware.threadnetwork-simulation-rcp
+endif
 
 # Enable bluetooth
 PRODUCT_PACKAGES += \
     android.hardware.bluetooth-service.default \
-    android.hardware.bluetooth.audio-impl \
     bt_vhci_forwarder \
 
 # Bluetooth hardware properties.
@@ -169,6 +171,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.keystore.app_attest_key.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.keystore.app_attest_key.xml
 
+ifneq ($(EMULATOR_VENDOR_NO_UWB),true)
 # Enable Uwb
 PRODUCT_PACKAGES += \
     com.android.hardware.uwb \
@@ -177,6 +180,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_VENDOR_PROPERTIES += ro.vendor.uwb.dev=/dev/hvc2
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.uwb.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.uwb.xml
+endif
 
 ifneq ($(EMULATOR_VENDOR_NO_GNSS),true)
 PRODUCT_PACKAGES += android.hardware.gnss-service.ranchu
@@ -222,6 +226,10 @@ PRODUCT_PACKAGES += \
     android.hardware.audio@7.1-impl.ranchu \
     android.hardware.audio.effect@7.0-impl \
 
+# Bluetooth Audio HAL
+PRODUCT_PACKAGES += \
+    android.hardware.bluetooth.audio-impl \
+
 DEVICE_MANIFEST_FILE += device/generic/goldfish/hals/audio/android.hardware.audio.effects@7.0.xml
 
 PRODUCT_COPY_FILES += \
@@ -238,7 +246,6 @@ endif
 # WiFi: vendor side
 PRODUCT_PACKAGES += \
     mac80211_create_radios \
-    dhcpclient \
     hostapd \
     wpa_supplicant \
 
@@ -255,7 +262,6 @@ PRODUCT_PACKAGES += \
     android.hardware.lights-service.example \
     com.android.hardware.neuralnetworks \
     com.android.hardware.power \
-    com.android.hardware.rebootescrow \
     com.android.hardware.thermal \
     com.android.hardware.vibrator
 
@@ -265,6 +271,10 @@ ifneq ($(PRODUCT_IS_ATV_SDK),true)
         android.hardware.identity-service.example
 endif
 
+ifneq ($(EMULATOR_VENDOR_NO_REBOOT_ESCROW),true)
+PRODUCT_PACKAGES += \
+    com.android.hardware.rebootescrow
+endif
 
 ifeq (,$(filter %_arm64,$(TARGET_PRODUCT)))  # TARGET_ARCH is not available here
 CODECS_PERFORMANCE_C2_PROFILE := codecs_performance_c2.xml
